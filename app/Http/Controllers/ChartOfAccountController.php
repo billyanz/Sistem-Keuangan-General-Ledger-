@@ -11,7 +11,7 @@ class ChartOfAccountController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'type' => ['nullable', Rule::in(['asset', 'liability', 'equity', 'revenue', 'expense'])],
+            'type'   => ['nullable', Rule::in(['asset', 'liability', 'equity', 'revenue', 'expense'])],
             'search' => ['nullable', 'string', 'max:100'],
         ]);
 
@@ -21,7 +21,7 @@ class ChartOfAccountController extends Controller
             ->when($request->filled('type'), fn ($query) => $query->where('type', $request->type))
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->string('search')->trim()->toString();
-                $query->where(fn ($accounts) => $accounts
+                $query->where(fn ($q) => $q
                     ->where('code', 'like', "%{$search}%")
                     ->orWhere('name', 'like', "%{$search}%"));
             })
@@ -75,7 +75,7 @@ class ChartOfAccountController extends Controller
     public function destroy(ChartOfAccount $account)
     {
         if ($account->journalItems()->exists() || $account->children()->exists()) {
-            return back()->with('error', 'Akun yang sudah digunakan atau masih memiliki sub-akun tidak dapat dihapus.');
+            return back()->with('error', 'Akun yang sudah digunakan dalam transaksi atau memiliki sub-akun tidak dapat dihapus.');
         }
 
         $account->delete();
@@ -85,18 +85,23 @@ class ChartOfAccountController extends Controller
 
     private function validatedData(Request $request, ?ChartOfAccount $account = null): array
     {
-        return $request->validate([
-            'code' => ['required', 'string', 'max:20', Rule::unique('chart_of_accounts', 'code')->ignore($account?->id)],
-            'name' => ['required', 'string', 'max:255'],
-            'type' => ['required', Rule::in(['asset', 'liability', 'equity', 'revenue', 'expense'])],
-            'normal_balance' => ['required', Rule::in(['debit', 'credit'])],
-            'parent_id' => [
+        $data = $request->validate([
+            'code'           => ['required', 'string', 'max:20', Rule::unique('chart_of_accounts', 'code')->ignore($account?->id)],
+            'name'           => ['required', 'string', 'max:255'],
+            'type'           => ['required', Rule::in(['asset', 'liability', 'equity', 'revenue', 'expense'])],
+            'normal_balance' => ['required', Rule::in(['debit', 'credit', 'Debit', 'Credit'])],
+            'parent_id'      => [
                 'nullable',
                 'integer',
                 Rule::exists('chart_of_accounts', 'id'),
                 ...($account ? [Rule::notIn([$account->id])] : []),
             ],
-            'is_active' => ['sometimes', 'boolean'],
+            'is_active'      => ['sometimes', 'boolean'],
         ]);
+
+        $data['type'] = strtolower($data['type']);
+        $data['normal_balance'] = strtolower($data['normal_balance']);
+
+        return $data;
     }
 }

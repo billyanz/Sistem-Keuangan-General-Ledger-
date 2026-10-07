@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete()->after('id');
-            $table->enum('role', ['superadmin', 'admin_branch', 'accountant', 'hr'])->default('accountant')->after('email');
+            $table->enum('role', ['admin', 'admin_branch', 'accountant', 'hr'])->default('accountant')->after('email');
         });
     }
 

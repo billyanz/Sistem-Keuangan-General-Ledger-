@@ -8,7 +8,7 @@
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Laporan Neraca Keuangan (Balance Sheet)</h1>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-500 mt-1">
                     Cabang: <span class="font-semibold text-indigo-600">{{ $selectedBranch ? $selectedBranch->code . ' - ' . $selectedBranch->name : 'Konsolidasi (Seluruh Cabang)' }}</span>
                 </p>
             </div>
@@ -26,7 +26,7 @@
                     <select name="branch_id" class="w-full border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="">-- Konsolidasi (Semua Cabang) --</option>
                         @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}" {{ $branchId == $branch->id ? 'selected' : '' }}>
+                            <option value="{{ $branch->id }}" {{ ($branchId ?? null) == $branch->id ? 'selected' : '' }}>
                                 {{ $branch->code }} - {{ $branch->name }}
                             </option>
                         @endforeach
